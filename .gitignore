@@ -1,0 +1,23 @@
+# Editors
+.idea/
+.fleet/
+.vscode/
+.nvim.lua
+
+# Builds
+libssh2*/
+mbedtls*/
+build/
+.zig-cache/
+zig-out/
+
+# Docker testing
+openssh-server/
+reports/
+server3/
+**/*/.github
+id_rsa_libssh2
+id_rsa_libssh2.pub
+
+# macOS
+.DS_Store

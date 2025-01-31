@@ -1,0 +1,19 @@
+
+services:
+  openssh-server:
+    image: lscr.io/linuxserver/openssh-server:latest
+    container_name: openssh-server
+    hostname: openssh-server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - PASSWORD_ACCESS=true  # ✅ Enables password authentication
+      - USER_NAME=testuser  # ✅ Creates a test user
+      - USER_PASSWORD=testpass  # ✅ Sets the password for testuser
+      - SUDO_ACCESS=false  # Optional: Prevents user from having sudo rights
+      - LOG_STDOUT=true  # Optional: Logs output to console
+    volumes:
+      - ./openssh-server/config:/config  # ✅ Store SSH config persistently
+    ports:
+      - 2222:2222  # ✅ Map container SSH (22) to host port 2222
