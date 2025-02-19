@@ -71,6 +71,13 @@ make macos-debug # or make linux
 
 You need to have Visual Studio 2022 installed
 
+### Windows 11 Build Instructions
+
+```bash
+    git clone https://github.com/libssh2/libssh2.git libssh2
+    zig build -Dtarget=x86_64-windows-msvc
+```
+
 ## Cross Compiling To Windows
 
 Zig allows cross compiling to Windows however since I have everything setup to use Windows encryption the MSVC C ABI must be targeted. Clang (`zig cc`), does not support using the GNU C ABI while linking to Windows libs, so you must have the Windows libs and Visual Studio C headers on your local system. make sure you download the x64/arm64 or which ever architech you are going to support. Maybe in the furture I will just dynamically load the DLLs, to allow using the GNU C ABI and thus bypassing needing to download Visual Studio 2022.

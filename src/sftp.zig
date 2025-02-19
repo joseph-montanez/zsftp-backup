@@ -184,7 +184,7 @@ pub fn downloadFilesQueue(
             break;
         }
 
-        const file = context.queue.popOrNull() orelse {
+        const file = context.queue.pop() orelse {
             context.lock.unlock();
             continue;
         };

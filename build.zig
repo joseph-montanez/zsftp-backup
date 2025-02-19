@@ -22,7 +22,7 @@ fn readFileContents(b: *std.Build, path: []const u8) []const u8 {
 // runner.
 pub fn build(b: *std.Build) void {
     const windows_sdk_path = b.option([]const u8, "windows_sdk_path", "Path to Windows SDK") orelse "C:\\Program Files (x86)\\Windows Kits\\10";
-    const visual_studio_path = b.option([]const u8, "visual_studio_path", "Path to Visual Studio") orelse "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.42.34433";
+    const visual_studio_path = b.option([]const u8, "visual_studio_path", "Path to Visual Studio") orelse "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808";
     const windows_sdk_version = b.option([]const u8, "windows_sdk_version", "Version Of Windows SDK") orelse "10.0.26100.0";
 
     const host = b.option([]const u8, "host", "Domain or IP of the server") orelse null;
@@ -118,7 +118,7 @@ pub fn build(b: *std.Build) void {
         .include_path = "config.h",
     }, .{
         .HOST = host,
-        .PORT =  std.fmt.parseInt(u16, port, 10) catch 22,
+        .PORT = std.fmt.parseInt(u16, port, 10) catch 22,
         .USERNAME = username,
         .PASSWORD = password,
         .PRIVATE_KEY = private_key_content,
@@ -218,7 +218,7 @@ pub fn build(b: *std.Build) void {
         }
 
         // Cannot link LibC when targeting msvc c abi
-        // exe.linkLibC();
+        //exe.linkLibC();
     } else {
         const os_name = if (target.result.os.tag == .macos) "macos" else "linux";
 
