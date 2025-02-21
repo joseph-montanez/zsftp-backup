@@ -207,6 +207,8 @@ pub fn main() anyerror!void {
                         const value = args.next() orelse return error.MissingValue;
                         @field(params, param.name).value = .{ .int = try std.fmt.parseInt(u16, value, 10) };
                         @field(params, param.name).alloc = true;
+
+                        std.debug.print("\t{s} - {s}\n", .{ param.name, value });
                     },
                     ParamType.is_bool => {
                         @field(params, param.name).value = .{ .boolean = true };
@@ -354,7 +356,7 @@ pub fn main() anyerror!void {
 
         for (0..num_threads) |i| {
             threads[i] = try std.Thread.spawn(.{}, sftp.downloadFilesQueue, .{
-                &context, server_addr, username, password, public_key, private_key, copy_to, dry_run,
+                &context, server_addr, username, password, public_key, private_key, copy_to, copy_from, dry_run,
             });
         }
 

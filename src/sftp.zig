@@ -134,6 +134,7 @@ pub fn downloadFilesQueue(
     public_key: []const u8,
     private_key: []const u8,
     copy_to: []const u8,
+    copy_from: []const u8,
     dry_run: bool,
 ) !void {
     const thread_id = std.Thread.getCurrentId();
@@ -197,11 +198,7 @@ pub fn downloadFilesQueue(
             continue;
         }
 
-        var trimmed_file_path: []const u8 = std.mem.trimLeft(u8, file.path, "/.");
-        if (std.mem.startsWith(u8, trimmed_file_path, "/")) {
-            trimmed_file_path = std.mem.trimLeft(u8, trimmed_file_path, "/");
-        }
-        const output_path = try std.mem.concat(allocator, u8, &.{ trimmed_copy_to_path, "/", trimmed_file_path });
+        const output_path = try processFilePath(allocator, file.path, copy_from, trimmed_copy_to_path);
         defer allocator.free(output_path);
 
         // Files will not be in order, the path on system may not exist yet
@@ -214,7 +211,7 @@ pub fn downloadFilesQueue(
                 if (!dry_run) {
                     try std.fs.cwd().makePath(parent_dir);
                 }
-                try path_map.put(parent_dir, true);
+                _ = try path_map.put(parent_dir, true);
             }
         }
 
@@ -372,4 +369,66 @@ pub fn listFilesRecursively(
     //         .path = name_copy,
     //     });
     // }
+}
+
+fn trimLeadingDotsAndSlashes(input: []const u8) []const u8 {
+    var trimmed = input;
+    while (trimmed.len > 0 and (trimmed[0] == '.' or trimmed[0] == '/')) {
+        if (std.mem.startsWith(u8, trimmed, "../")) {
+            trimmed = trimmed[3..];
+        } else if (std.mem.startsWith(u8, trimmed, "./")) {
+            trimmed = trimmed[2..];
+        } else if (trimmed[0] == '.' or trimmed[0] == '/') {
+            trimmed = trimmed[1..];
+        } else {
+            break;
+        }
+    }
+    return trimmed;
+}
+
+test "trimLeadingDotsAndSlashes" {
+    try std.testing.expectEqualStrings("folder/file.txt", trimLeadingDotsAndSlashes("../folder/file.txt"));
+    try std.testing.expectEqualStrings("folder/file.txt", trimLeadingDotsAndSlashes("./folder/file.txt"));
+    try std.testing.expectEqualStrings("folder/file.txt", trimLeadingDotsAndSlashes("///folder/file.txt"));
+    try std.testing.expectEqualStrings("folder/file.txt", trimLeadingDotsAndSlashes("..///./folder/file.txt"));
+    try std.testing.expectEqualStrings("", trimLeadingDotsAndSlashes("../././"));
+}
+
+
+fn processFilePath(
+    allocator: std.mem.Allocator,
+    file_path: []const u8,
+    copy_from: []const u8,
+    trimmed_copy_to_path: []const u8,
+) ![]const u8 {
+    var trimmed_file_path: []const u8 = file_path;
+
+    if (std.mem.startsWith(u8, trimmed_file_path, copy_from)) {
+        trimmed_file_path = trimmed_file_path[copy_from.len..];
+        trimmed_file_path = std.mem.trimLeft(u8, trimmed_file_path, "/");
+    }
+
+    const output_path = if (trimmed_copy_to_path.len > 0)
+        try std.mem.concat(allocator, u8, &.{ trimmed_copy_to_path, "/", trimmed_file_path })
+    else
+        try std.mem.concat(allocator, u8, &.{trimmed_file_path});
+
+    return output_path;
+}
+
+test "processFilePath" {
+    var gpa = std.testing.allocator;
+
+    const result1 = try processFilePath(gpa, "/home/user", "/home", "");
+    defer gpa.free(result1);
+    try std.testing.expectEqualStrings("user", result1);
+
+    const result2 = try processFilePath(gpa, "/home/tabletc/logs/access.log", "/home/tabletc", "server3");
+    defer gpa.free(result2);
+    try std.testing.expectEqualStrings("server3/logs/access.log", result2);
+
+    const result3 = try processFilePath(gpa, "/home/tabletc/logs/access.log", "/home", "server3");
+    defer gpa.free(result3);
+    try std.testing.expectEqualStrings("server3/tabletc/logs/access.log", result3);
 }
